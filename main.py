@@ -13,47 +13,91 @@ return_columns = ['Gelecek 3 Aylık %', 'Gelecek 1 Yıllık %', 'Gelecek 6 Aylı
 for col in return_columns:
     df[col] = pd.to_numeric(df[col], errors='coerce')
 
-# Current strategy metrics (buy all captures)
-current_success_rate = (df['Gelecek 3 Aylık %'] > 0).mean() * 100
-current_avg_return = df['Gelecek 3 Aylık %'].mean()
-current_positions = len(df)
+def filter_stocks(stock_data):
+    # Create a list to append the stock information
+    results = []
 
-print(f"Current Strategy (Buy All Captures):")
-print(f"Success Rate: {current_success_rate:.1f}%")
-print(f"Number of Positions: {current_positions}")
-print(f"Average Return: {current_avg_return:.2f}%\n")
+    for _, row in stock_data.iterrows():
+        # Buy the stock when captured
+        buy_price = row['Güncel Fiyat']
+        sell_price = None
+        holding_period = None
+        return_rate = None
 
-def filter_stocks(stock_row):
-    # Count how many times each stock appears
-    stock_counts = df['Stock'].value_counts()
+        # Check 1-month return is greater than five percent
+        if row['Gelecek 1 Aylık %'] >= 5:
+            # If it is, sell the stock and calculate selling price, holding period, and return rate
+            sell_price = buy_price * (1 + row['Gelecek 1 Aylık %']/ 100)
+            holding_period = '1 month'
+            return_rate = row['Gelecek 1 Aylık %']
 
-    # Create a mask for our filtering conditions
-    mask = (
-        # Only include stocks that have been captured at least twice
-        df['Stock'].map(stock_counts) >= 2
-    )
+        # If not, check 3-month return is greater than five percent
+        elif row['Gelecek 3 Aylık %'] >= 5:
+            # If it is, sell the stock and calculate selling price, holding period, and return rate
+            sell_price = buy_price * (1 + row['Gelecek 3 Aylık %']/ 100)
+            holding_period = '3 month'
+            return_rate = row['Gelecek 3 Aylık %']
 
-    # Filter the mask with condition
-    mask = mask & (
-        (df['Gelecek 1 Haftalık %'] >= 2) &
-        (df['Gelecek 1 Aylık %'] >= 5) &
-        (df['Gelecek 3 Aylık %'] >= 10) &
-        (df['Gelecek 6 Aylık %'] >= 20) &
-        (df['Gelecek 1 Yıllık %'] >= 40)
-    )
+        # If not, check 6-month return is greater than five percent
+        elif row['Gelecek 6 Aylık %'] >= 5:
+            # If it is, sell the stock and calculate selling price, holding period, and return rate
+            sell_price = buy_price * (1 + row['Gelecek 6 Aylık %']/ 100)
+            holding_period = '6 month'
+            return_rate = row['Gelecek 6 Aylık %']
 
-    return df[mask]
+        # If not, check 1-year return is greater than five percent
+        elif row['Gelecek 1 Yıllık %'] >= 5:
+            # If it is, sell the stock and calculate selling price, holding period, and return rate
+            sell_price = buy_price * (1 + row['Gelecek 1 Yıllık %']/ 100)
+            holding_period = '1 Yıllık'
+            return_rate = row['Gelecek 1 Yıllık %']
 
-# Apply the filter
-filtered_df = filter_stocks(df)
+        else:
+            # If no selling condition met, hold indefinitely (count as negative return)
+            sell_price = buy_price
+            holding_period  = '>1 year'
+            return_rate = 0
 
-# Calculate metrics for filtered strategy
-filtered_success_rate = (filtered_df['Gelecek 3 Aylık %'] > 0).mean() * 100
-filtered_avg_return = filtered_df['Gelecek 3 Aylık %'].mean()
-filtered_positions = len(filtered_df)
+        # Append the results to list
+        results.append({
+            'Date': row['Date'],
+            'Stock': row['Stock'],
+            'Buy Price': buy_price,
+            'Sell Price': sell_price,
+            'Holding Period': holding_period,
+            'Return %': return_rate,
+            'Successful Trade': return_rate >= 5
+        })
+    return pd.DataFrame(results)
 
-print(f"Filtered Strategy:")
-print(f"Success Rate: {filtered_success_rate:.1f}%")
-print(f"Number of Positions: {filtered_positions}")
-print(f"Average Return: {filtered_avg_return:.2f}%")
-print(f"Reduction in Positions: {((current_positions - filtered_positions)/current_positions)*100:.1f}%")
+# Create an empty list to collect results of for all stocks
+all_trades = []
+
+for stock in df['Stock'].unique():
+    # Filters the DataFrame to get only rows for the current stock and sort these rows by date
+    stock_data = df[df['Stock'] == stock].sort_values('Date')
+
+    # Apply the filter_stocks function to each stock
+    stock_trades = filter_stocks(stock_data)
+
+    # Append it filtered stock to list
+    all_trades.append(stock_trades)
+
+# Combine all individual stock DataFrame into one big DataFrame containing all trades
+trades_df = pd.concat(all_trades)
+
+# Calculate strategy metrics
+
+# Get the mean of the sucessful Trade and divide by 100
+success_rate = trades_df['Successful Trade'].mean() * 100
+
+# Get the mean of the returns
+avg_return = trades_df['Return %'].mean()
+
+# Get the length of the trades made by algorithm
+num_positions = len(trades_df)
+
+print("Implemented Strategy Results:")
+print(f"Success Rate: {success_rate:.1f}%")
+print(f"Number of Positions: {num_positions}")
+print(f"Average Return: {avg_return:.2f}%")
