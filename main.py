@@ -7,6 +7,8 @@ df = pd.read_csv('2007-01-01_2025-04-30_USA_RISK.csv')
 # Clean the data - remove rows with no captures
 df = df[df['Stock'] != 'No Stocks Captured']
 
+df = df[(df['Date'] >= '2020-01-01') & (df['Date'] <= '2024-05-05')]
+
 # Convert percentage columns to numeric
 return_columns = ['Gelecek 3 Aylık %', 'Gelecek 1 Yıllık %', 'Gelecek 6 Aylık %',
                   'Gelecek 1 Aylık %', 'Gelecek 1 Haftalık %', 'Gelecek 1 Günlük %']
