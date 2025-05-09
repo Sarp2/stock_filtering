@@ -72,21 +72,6 @@ def filter_stocks(stock_data):
         })
     return pd.DataFrame(results)
 
-# Create an empty list to collect results of for all stocks
-all_trades = []
-
-for stock in df['Stock'].unique():
-    # Filters the DataFrame to get only rows for the current stock and sort these rows by date
-    stock_data = df[df['Stock'] == stock].sort_values('Date')
-
-    # Apply the filter_stocks function to each stock
-    stock_trades = filter_stocks(stock_data)
-
-    # Append it filtered stock to list
-    all_trades.append(stock_trades)
-
-# Combine all individual stock DataFrame into one big DataFrame containing all trades
-trades_df = pd.concat(all_trades)
 
 # Calculate strategy metrics
 
