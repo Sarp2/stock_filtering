@@ -18,9 +18,8 @@ for col in return_columns:
 def filter_stocks(stock_data):
     # Create a list to append the stock information
     results = []
-
     for _, row in stock_data.iterrows():
-        # Buy the stock when captured
+
         buy_price = row['Güncel Fiyat']
         sell_price = None
         holding_period = None
@@ -68,21 +67,21 @@ def filter_stocks(stock_data):
             'Sell Price': sell_price,
             'Holding Period': holding_period,
             'Return %': return_rate,
-            'Successful Trade': return_rate >= 5
+            'Successful Trade': return_rate >= 2
         })
     return pd.DataFrame(results)
 
+stock_trades = filter_stocks(df)
 
-# Calculate strategy metrics
 
 # Get the mean of the sucessful Trade and divide by 100
-success_rate = trades_df['Successful Trade'].mean() * 100
+success_rate = stock_trades['Successful Trade'].mean() * 100
 
 # Get the mean of the returns
-avg_return = trades_df['Return %'].mean()
+avg_return = stock_trades['Return %'].mean()
 
 # Get the length of the trades made by algorithm
-num_positions = len(trades_df)
+num_positions = len(stock_trades)
 
 print("Implemented Strategy Results:")
 print(f"Success Rate: {success_rate:.1f}%")
