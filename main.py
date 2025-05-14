@@ -59,20 +59,16 @@ def filter_stocks(stock_data):
             'Sell Price': sell_price,
             'Holding Period': holding_period,
             'Return %': return_rate,
-            'Successful Trade': return_rate >= 0
+            'Successful Trade': return_rate > 0
         })
     return pd.DataFrame(results)
 
 stock_trades = filter_stocks(df)
 
+success_rate = (stock_trades['Successful Trade'].sum() / len(stock_trades)) * 100
 
-# Get the mean of the successful Trade and divide by 100
-success_rate = stock_trades['Successful Trade'].mean() * 100
-
-# Get the mean of the returns
 avg_return = stock_trades['Return %'].mean()
 
-# Get the length of the trades made by algorithm
 num_positions = len(stock_trades)
 
 print("Implemented Strategy Results:")
