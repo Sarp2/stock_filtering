@@ -41,25 +41,17 @@ def filter_stocks(stock_data):
 
         # If not, check 6-month return is greater than five percent
         elif row['Gelecek 6 Aylık %'] >= 5:
-            # If it is, sell the stock and calculate selling price, holding period, and return rate
+            # If it is, sell the stock and calculate the selling price, holding period, and return rate
             sell_price = buy_price * (1 + row['Gelecek 6 Aylık %']/ 100)
             holding_period = '6 month'
             return_rate = row['Gelecek 6 Aylık %']
 
-        # If not, check 1-year return is greater than five percent
-        elif row['Gelecek 1 Yıllık %'] >= 5:
-            # If it is, sell the stock and calculate selling price, holding period, and return rate
-            sell_price = buy_price * (1 + row['Gelecek 1 Yıllık %']/ 100)
-            holding_period = '1 Yıllık'
+        else:
+            sell_price = buy_price * (1 + row['Gelecek 1 Yıllık %'] / 100)
+            holding_period = '1 Year'
             return_rate = row['Gelecek 1 Yıllık %']
 
-        else:
-            # If no selling condition met, hold indefinitely (count as negative return)
-            sell_price = buy_price
-            holding_period  = '>1 year'
-            return_rate = 0
-
-        # Append the results to list
+        # Append the results to the list
         results.append({
             'Date': row['Date'],
             'Stock': row['Stock'],
@@ -67,14 +59,14 @@ def filter_stocks(stock_data):
             'Sell Price': sell_price,
             'Holding Period': holding_period,
             'Return %': return_rate,
-            'Successful Trade': return_rate >= 2
+            'Successful Trade': return_rate >= 0
         })
     return pd.DataFrame(results)
 
 stock_trades = filter_stocks(df)
 
 
-# Get the mean of the sucessful Trade and divide by 100
+# Get the mean of the successful Trade and divide by 100
 success_rate = stock_trades['Successful Trade'].mean() * 100
 
 # Get the mean of the returns
