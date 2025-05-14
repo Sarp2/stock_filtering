@@ -65,7 +65,7 @@ def filter_stocks(stock_data):
 
 stock_trades = filter_stocks(df)
 
-success_rate = (stock_trades['Successful Trade'].sum() / len(stock_trades)) * 100
+success_rate = len(stock_trades['Return %'] > 0) / len(stock_trades) * 100
 
 avg_return = stock_trades['Return %'].mean()
 
